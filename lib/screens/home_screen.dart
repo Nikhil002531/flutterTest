@@ -1,8 +1,9 @@
-
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/sidebar_menu.dart';
 import '../widgets/news_card.dart';
 import '../models/news.dart';
+import '../auth/wrapper_screen.dart'; // Import your wrapper
 
 class HomeScreen extends StatelessWidget {
   final List<News> mockNews = [
@@ -13,8 +14,27 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check current user
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
-      appBar: AppBar(title: Text("Disaster News")),
+      appBar: AppBar(
+        title: Text("Disaster News"),
+        actions: [
+          if (user != null)
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                // Navigate via WrapperScreen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => WrapperScreen()),
+                );
+              },
+            )
+        ],
+      ),
       drawer: SidebarMenu(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
