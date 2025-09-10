@@ -4,6 +4,8 @@ class DisasterReport {
   final double longitude;
   final String location;
   final String timestamp;
+  final String disasterType;
+  final String description;
 
   DisasterReport({
     required this.imagePath,
@@ -11,6 +13,8 @@ class DisasterReport {
     required this.longitude,
     required this.location,
     required this.timestamp,
+    required this.disasterType,
+    required this.description,
   });
 
   Map<String, dynamic> toJson() {
@@ -20,6 +24,8 @@ class DisasterReport {
       "longitude": longitude,
       "location": location,
       "timestamp": timestamp,
+      "disasterType":disasterType,
+      "description":description,
     };
   }
 }
