@@ -1,245 +1,29 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_map/flutter_map.dart';
-// import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
-// import 'package:latlong2/latlong.dart';
-// import '../models/disaster_report.dart';
-// import '../data/scraped_loader.dart';
-//
-// class MapScreen extends StatefulWidget {
-//   const MapScreen({Key? key}) : super(key: key);
-//
-//   @override
-//   State<MapScreen> createState() => _MapScreenState();
-// }
-//
-// class _MapScreenState extends State<MapScreen> {
-//   String? _filterType;
-//   bool _useVectorTiles = false;
-//   final MapController _mapController = MapController();
-//
-//   static const String mapboxToken = "YOUR_MAPBOX_ACCESS_TOKEN";
-//   static final LatLng indiaCenter = LatLng(20.5937, 78.9629);
-//   static const double indiaZoom = 4.5;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.grey[100],
-//       appBar: AppBar(
-//         title: const Text('🌊 Ocean Watch — Hazard Heatmap'),
-//         backgroundColor: Colors.blueGrey,
-//       ),
-//       body: FutureBuilder<List<DisasterReport>>(
-//         future: loadReportsFromAsset(),
-//         builder: (context, snap) {
-//           if (snap.connectionState != ConnectionState.done) {
-//             return const Center(child: CircularProgressIndicator());
-//           }
-//
-//           final reports = snap.data ?? [];
-//           if (reports.isEmpty) {
-//             return const Center(child: Text('No reports available'));
-//           }
-//
-//           final geoReports = reports
-//               .where((r) =>
-//           r.latitude != null &&
-//               r.longitude != null &&
-//               (_filterType == null ||
-//                   r.disasterType.toLowerCase() ==
-//                       _filterType!.toLowerCase()))
-//               .toList();
-//
-//           final heatData = geoReports
-//               .map((r) =>
-//               WeightedLatLng(LatLng(r.latitude!, r.longitude!), r.intensity))
-//               .toList();
-//
-//           return Stack(
-//             children: [
-//               FlutterMap(
-//                 mapController: _mapController,
-//                 options: MapOptions(
-//                   initialCenter: indiaCenter,
-//                   initialZoom: indiaZoom,
-//                 ),
-//                 children: [
-//                   // Raster or Vector TileLayer
-//                   _useVectorTiles
-//                       ? TileLayer(
-//                     urlTemplate:
-//                     "https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/256/{z}/{x}/{y}@2x?access_token=$mapboxToken",
-//                     additionalOptions: {
-//                       'accessToken': mapboxToken,
-//                       'id': 'mapbox.light',
-//                     },
-//                     subdomains: [],
-//                     tileSize: 512,
-//                     userAgentPackageName: 'com.example.sih',
-//                   )
-//                       : TileLayer(
-//                     urlTemplate:
-//                     'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-//                     subdomains: const ['a', 'b', 'c'],
-//                     additionalOptions: {
-//                       'r': '@2x', // load retina tiles
-//                     },
-//                     userAgentPackageName: 'com.example.sih',
-//                   ),
-//                   if (heatData.isNotEmpty)
-//                     HeatMapLayer(
-//                       heatMapDataSource:
-//                       InMemoryHeatMapDataSource(data: heatData),
-//                       heatMapOptions: HeatMapOptions(
-//                         radius: 110,
-//                         blurFactor: 1.0,
-//                         minOpacity: 0.4,
-//                         gradient: {
-//                           0.0: Colors.green,
-//                           0.4: Colors.yellow,
-//                           0.7: Colors.orange,
-//                           1.0: Colors.red,
-//                         },
-//                       ),
-//                     ),
-//                 ],
-//               ),
-//
-//               // Filter chips
-//               Positioned(
-//                 top: 12,
-//                 left: 12,
-//                 right: 12,
-//                 child: SingleChildScrollView(
-//                   scrollDirection: Axis.horizontal,
-//                   child: Row(
-//                     children: [
-//                       _filterChip("All", null),
-//                       _filterChip("Cyclone", "Cyclone"),
-//                       _filterChip("Floods", "Floods"),
-//                       _filterChip("Tsunami", "Tsunami"),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//
-//               // Legend
-//               Positioned(
-//                 left: 12,
-//                 bottom: 12,
-//                 child: Card(
-//                   color: Colors.white.withOpacity(0.85),
-//                   shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(10)),
-//                   elevation: 6,
-//                   child: Container(
-//                     width: 180,
-//                     padding: const EdgeInsets.all(12),
-//                     child: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         const Text("🔥 Heatmap Guide",
-//                             style: TextStyle(
-//                                 color: Colors.black87,
-//                                 fontWeight: FontWeight.bold,
-//                                 fontSize: 16)),
-//                         const SizedBox(height: 8),
-//                         Container(
-//                           height: 14,
-//                           decoration: const BoxDecoration(
-//                             borderRadius:
-//                             BorderRadius.all(Radius.circular(4)),
-//                             gradient: LinearGradient(
-//                               colors: [
-//                                 Colors.green,
-//                                 Colors.yellow,
-//                                 Colors.orange,
-//                                 Colors.red,
-//                               ],
-//                             ),
-//                           ),
-//                         ),
-//                         const SizedBox(height: 6),
-//                         const Text(
-//                           "Green → Low reports\nYellow → Medium\nRed → High hazard density",
-//                           style: TextStyle(color: Colors.black54, fontSize: 12),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           );
-//         },
-//       ),
-//
-//       // Floating buttons
-//       floatingActionButton: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         crossAxisAlignment: CrossAxisAlignment.end,
-//         children: [
-//           FloatingActionButton.extended(
-//             heroTag: "toggle",
-//             backgroundColor: Colors.amber,
-//             icon: const Icon(Icons.layers),
-//             label: Text(_useVectorTiles ? "Vector" : "Raster"),
-//             onPressed: () {
-//               setState(() {
-//                 _useVectorTiles = !_useVectorTiles;
-//               });
-//             },
-//           ),
-//           const SizedBox(height: 12),
-//           FloatingActionButton.extended(
-//             heroTag: "reset",
-//             backgroundColor: Colors.blue,
-//             icon: const Icon(Icons.refresh),
-//             label: const Text("Reset View"),
-//             onPressed: () {
-//               _mapController.move(indiaCenter, indiaZoom);
-//             },
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _filterChip(String label, String? type) {
-//     final bool selected = _filterType == type;
-//     return Padding(
-//       padding: const EdgeInsets.only(right: 8),
-//       child: ChoiceChip(
-//         label: Text(label,
-//             style: TextStyle(
-//                 color: selected ? Colors.black : Colors.black87,
-//                 fontWeight: FontWeight.w600)),
-//         selected: selected,
-//         selectedColor: Colors.amber,
-//         backgroundColor: Colors.grey[300],
-//         onSelected: (_) {
-//           setState(() {
-//             _filterType = type;
-//           });
-//         },
-//       ),
-//     );
-//   }
-// }
-import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'dart:ui'; // 👈 add this for ImageFilter.blur
+
 import 'package:flutter_map_heatmap/flutter_map_heatmap.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/disaster_report.dart';
 import '../data/scraped_loader.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  final MapController _mapController = MapController();
+
+  final LatLng _initialCenter = LatLng(20.5937, 78.9629); // India
+  final double _initialZoom = 4.5;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ocean Watch — Hazard Heatmap')),
+      appBar: AppBar(title: const Text('🌊 Ocean Watch — Hazard Heatmap')),
       body: FutureBuilder<List<DisasterReport>>(
         future: loadReportsFromAsset(),
         builder: (context, snap) {
@@ -265,7 +49,7 @@ class MapScreen extends StatelessWidget {
           ))
               .toList();
 
-          // Markers for tapping
+          // Markers
           final markers = geoReports.map((r) {
             return Marker(
               point: LatLng(r.latitude!, r.longitude!),
@@ -276,7 +60,7 @@ class MapScreen extends StatelessWidget {
                 child: const Icon(
                   Icons.location_on,
                   size: 36,
-                  color: Colors.blueAccent,
+                  color: Colors.deepPurpleAccent,
                 ),
               ),
             );
@@ -285,9 +69,13 @@ class MapScreen extends StatelessWidget {
           return Stack(
             children: [
               FlutterMap(
+                mapController: _mapController,
                 options: MapOptions(
-                  initialCenter: LatLng(20.5937, 78.9629), // India
-                  initialZoom: 4.5,
+                  initialCenter: _initialCenter,
+                  initialZoom: _initialZoom,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
                 ),
                 children: [
                   TileLayer(
@@ -301,12 +89,13 @@ class MapScreen extends StatelessWidget {
                       heatMapDataSource:
                       InMemoryHeatMapDataSource(data: heatData),
                       heatMapOptions: HeatMapOptions(
-                        radius: 80,
-                        blurFactor: 0.8,
-                        minOpacity: 0.4,
+                        radius: 90,
+                        blurFactor: 0.7,
+                        minOpacity: 0.3,
                         gradient: {
-                          0.0: Colors.green,
-                          0.5: Colors.orange,
+                          0.0: Colors.blue,
+                          0.4: Colors.green,
+                          0.7: Colors.orange,
                           1.0: Colors.red,
                         },
                       ),
@@ -316,24 +105,52 @@ class MapScreen extends StatelessWidget {
                 ],
               ),
 
-              // Legend overlay
+              // Glass legend
+              Positioned(
+                right: 12,
+                bottom: 80,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: BackdropFilter(
+                    filter:
+                    ImageFilter.blur(sigmaX: 12, sigmaY: 12), // glass effect
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      color: Colors.white.withOpacity(0.7),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            "Heatmap Legend",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          _LegendItem(color: Colors.blue, label: "Very Low"),
+                          _LegendItem(color: Colors.green, label: "Low"),
+                          _LegendItem(color: Colors.orange, label: "Medium"),
+                          _LegendItem(color: Colors.red, label: "High Density"),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Reset zoom button
               Positioned(
                 right: 12,
                 bottom: 12,
-                child: Card(
-                  color: Colors.white.withOpacity(0.9),
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        _LegendItem(color: Colors.green, label: "Low reports"),
-                        _LegendItem(color: Colors.orange, label: "Medium"),
-                        _LegendItem(color: Colors.red, label: "High density"),
-                      ],
-                    ),
-                  ),
+                child: FloatingActionButton(
+                  heroTag: "reset_zoom",
+                  backgroundColor: Colors.deepPurple,
+                  onPressed: () {
+                    _mapController.move(_initialCenter, _initialZoom);
+                  },
+                  child: const Icon(Icons.refresh, color: Colors.white),
                 ),
               ),
             ],
@@ -357,7 +174,6 @@ class MapScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Draggable indicator
               Center(
                 child: Container(
                   width: 40,
@@ -374,6 +190,7 @@ class MapScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
                 ),
               ),
               const SizedBox(height: 8),
@@ -399,7 +216,7 @@ class MapScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.blueAccent),
+        Icon(icon, size: 20, color: Colors.deepPurple),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(
@@ -415,6 +232,7 @@ class MapScreen extends StatelessWidget {
                   text: value,
                   style: const TextStyle(
                     fontWeight: FontWeight.normal,
+                    color: Colors.black,
                   ),
                 ),
               ],
@@ -444,4 +262,3 @@ class _LegendItem extends StatelessWidget {
     );
   }
 }
-
