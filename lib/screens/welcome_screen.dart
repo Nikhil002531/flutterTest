@@ -20,7 +20,7 @@ class WelcomeScreen extends StatelessWidget {
             Image.asset(
               "assets/images/welcome_bg.jpg",
               fit: BoxFit.cover,
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withOpacity(0.75),
               colorBlendMode: BlendMode.darken,
             ),
 
@@ -109,4 +109,5 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
+
 

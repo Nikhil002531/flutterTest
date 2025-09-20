@@ -1,0 +1,301 @@
+{
+  "posts": [
+    {
+      "timestamp": "2025-08-29T12:48:08+00:00",
+      "location": "Chennai",
+      "latitude": 13.0827,
+      "longitude": 80.2707,
+      "disasterType": "Tsunami Preparedness",
+      "description": "Marine Multi-Hazard Conclave 2025: experts showcased tsunami early warning, coastal research, and resilience.",
+      "intensity": 1.0
+    },
+    {
+      "timestamp": "2025-07-30T05:04:40+00:00",
+      "location": "Chennai",
+      "latitude": 13.0827,
+      "longitude": 80.2707,
+      "disasterType": "Tsunami",
+      "description": "Oarfish sightings reported near Chennai, linked to earthquake and tsunami fears.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-09-01T03:39:34+00:00",
+      "location": "Chennai",
+      "latitude": 13.0827,
+      "longitude": 80.2707,
+      "disasterType": "Cyclone Fengal",
+      "description": "IndiGo flight performed go-around at Chennai Airport amid cyclone winds.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-26T09:27:48+00:00",
+      "location": "Mumbai",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "disasterType": "Cyclone",
+      "description": "Old cyclone videos shared falsely as Mumbai floods.",
+      "intensity": 2.0
+    },
+    {
+      "timestamp": "2025-08-20T15:18:15+00:00",
+      "location": "Chennai",
+      "latitude": 13.0827,
+      "longitude": 80.2707,
+      "disasterType": "Cyclone Michaung",
+      "description": "Chennai Airport flooded during Cyclone Michaung.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-08-19T23:55:07+00:00",
+      "location": "Mumbai",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "disasterType": "Cyclone Tauktae",
+      "description": "Mumbai Gateway of India waves rising due to cyclone.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-05-14T09:43:31+00:00",
+      "location": "Kolkata",
+      "latitude": 22.5726,
+      "longitude": 88.3639,
+      "disasterType": "Cyclone Shakti",
+      "description": "IMD warning of Cyclone Shakti forming in Bay of Bengal.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-05-14T09:43:31+00:00",
+      "location": "Odisha Coast",
+      "latitude": 20.9517,
+      "longitude": 85.0985,
+      "disasterType": "Cyclone Shakti",
+      "description": "Cyclone Shakti may hit Odisha coast between May 24–26.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-05-14T05:40:02+00:00",
+      "location": "Andaman & Nicobar",
+      "latitude": 11.7401,
+      "longitude": 92.6586,
+      "disasterType": "Cyclone Shakti",
+      "description": "IMD: Cyclone circulation detected over Andaman Sea.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-08-19T16:39:57+00:00",
+      "location": "Mumbai",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "disasterType": "Floods",
+      "description": "Heavy rains and flooding at Gateway of India, Mumbai.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-25T09:27:33+00:00",
+      "location": "Vizag",
+      "latitude": 17.6868,
+      "longitude": 83.2185,
+      "disasterType": "Cyclone Alerts",
+      "description": "Request to activate EWF cyclone alerts in coastal AIR transmission.",
+      "intensity": 2.0
+    },
+    {
+      "timestamp": "2025-08-19T14:50:32+00:00",
+      "location": "Mumbai",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "disasterType": "High Tides",
+      "description": "Mumbai faces high tides with Cyclone Tauktae recirculated footage.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-05-14T03:50:58+00:00",
+      "location": "Odisha",
+      "latitude": 20.9517,
+      "longitude": 85.0985,
+      "disasterType": "Cyclone Shakti",
+      "description": "IMD: Cyclone Shakti may landfall between May 24–26.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-05-13T11:30:00+00:00",
+      "location": "Andaman Sea",
+      "latitude": 11.7401,
+      "longitude": 92.6586,
+      "disasterType": "Cyclone Brewing",
+      "description": "Monsoon advance over Bay of Bengal, Cyclone Shakti brewing.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-06-10T07:45:12+00:00",
+      "location": "Puducherry",
+      "latitude": 11.9416,
+      "longitude": 79.8083,
+      "disasterType": "Floods",
+      "description": "Heavy monsoon rains cause urban flooding in Puducherry.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-07-05T10:12:54+00:00",
+      "location": "Goa",
+      "latitude": 15.2993,
+      "longitude": 74.1240,
+      "disasterType": "Cyclone Alert",
+      "description": "Cyclone alert issued for Goa coastal regions.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-07-15T16:34:20+00:00",
+      "location": "Kerala",
+      "latitude": 10.8505,
+      "longitude": 76.2711,
+      "disasterType": "Floods",
+      "description": "Kerala rivers overflowing due to monsoon rains, heavy flooding reported.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-06-20T12:15:30+00:00",
+      "location": "Andhra Pradesh",
+      "latitude": 15.9129,
+      "longitude": 79.7400,
+      "disasterType": "Cyclone Warning",
+      "description": "Cyclone warning issued, residents urged to evacuate low-lying areas.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-07-25T08:55:00+00:00",
+      "location": "Odisha Coast",
+      "latitude": 20.9517,
+      "longitude": 85.0985,
+      "disasterType": "Cyclone Alert",
+      "description": "Coastal Odisha under cyclone alert, fishermen advised to remain ashore.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-08-01T14:45:12+00:00",
+      "location": "Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.5946,
+      "disasterType": "Heatwave",
+      "description": "Severe heatwave warning issued for Bengaluru, temperature above 42°C.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-03T09:30:45+00:00",
+      "location": "Hyderabad",
+      "latitude": 17.3850,
+      "longitude": 78.4867,
+      "disasterType": "Heatwave",
+      "description": "Hyderabad experiences record-breaking heatwave, public advised to stay hydrated.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-12T11:20:00+00:00",
+      "location": "Ranchi",
+      "latitude": 23.3441,
+      "longitude": 85.3096,
+      "disasterType": "Floods",
+      "description": "Heavy rains cause flooding in low-lying areas of Ranchi.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-08-15T07:10:25+00:00",
+      "location": "Patna",
+      "latitude": 25.5941,
+      "longitude": 85.1376,
+      "disasterType": "Floods",
+      "description": "Patna sees significant flood water levels due to monsoon rains.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-17T06:25:00+00:00",
+      "location": "Kochi",
+      "latitude": 9.9312,
+      "longitude": 76.2673,
+      "disasterType": "Cyclone Michaung",
+      "description": "Cyclone Michaung crosses Kerala coast, heavy winds reported in Kochi.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-08-18T13:45:40+00:00",
+      "location": "Chennai",
+      "latitude": 13.0827,
+      "longitude": 80.2707,
+      "disasterType": "Cyclone Fengal",
+      "description": "Cyclone Fengal approaching Chennai coast, authorities prepare for evacuation.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-21T17:50:20+00:00",
+      "location": "Mumbai",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "disasterType": "Floods",
+      "description": "Mumbai suburbs flooded after overnight heavy rainfall.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-08-23T09:15:00+00:00",
+      "location": "Kolkata",
+      "latitude": 22.5726,
+      "longitude": 88.3639,
+      "disasterType": "Cyclone Alerts",
+      "description": "Cyclone alert issued for Kolkata and nearby coastal districts.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-08-24T10:25:40+00:00",
+      "location": "Andaman & Nicobar",
+      "latitude": 11.7401,
+      "longitude": 92.6586,
+      "disasterType": "Cyclone Brewing",
+      "description": "Cyclone formation observed near Andaman Sea, warning issued.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-08-25T16:40:12+00:00",
+      "location": "Vizag",
+      "latitude": 17.6868,
+      "longitude": 83.2185,
+      "disasterType": "High Tides",
+      "description": "Vizag coastal areas face unusually high tides due to storm surge.",
+      "intensity": 3.0
+    },
+    {
+      "timestamp": "2025-08-26T12:30:50+00:00",
+      "location": "Puducherry",
+      "latitude": 11.9416,
+      "longitude": 79.8083,
+      "disasterType": "Floods",
+      "description": "Floods reported in Puducherry after heavy monsoon rains.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-27T08:50:15+00:00",
+      "location": "Goa",
+      "latitude": 15.2993,
+      "longitude": 74.1240,
+      "disasterType": "Cyclone Warning",
+      "description": "Cyclone approaching Goa, emergency services on alert.",
+      "intensity": 4.0
+    },
+    {
+      "timestamp": "2025-08-28T14:30:00+00:00",
+      "location": "Kerala",
+      "latitude": 10.8505,
+      "longitude": 76.2711,
+      "disasterType": "Landslides",
+      "description": "Landslides triggered in hilly regions of Kerala due to heavy rainfall.",
+      "intensity": 5.0
+    },
+    {
+      "timestamp": "2025-08-29T09:20:12+00:00",
+      "location": "Bhubaneswar",
+      "latitude": 20.2961,
+      "longitude": 85.8245,
+      "disasterType": "Cyclone Alert",
+      "description": "Bhubaneswar under cyclone alert, public advised to take precautions.",
+      "intensity": 4.0
+    }
+  ]
+}

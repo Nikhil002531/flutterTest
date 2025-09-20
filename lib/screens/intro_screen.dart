@@ -42,8 +42,13 @@ class _IntroScreenState extends State<IntroScreen> {
   ];
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // ✅ Consistent text styles for all screens
     const TextStyle headingStyle = TextStyle(
       fontSize: 27.5,
       fontWeight: FontWeight.w900,
@@ -87,7 +92,7 @@ class _IntroScreenState extends State<IntroScreen> {
               itemBuilder: (context, index) {
                 final page = _pagesData[index];
 
-                // ✅ Page with dual stacked images
+                // Page with dual stacked images
                 if (page.containsKey("dualStackImages")) {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -107,12 +112,11 @@ class _IntroScreenState extends State<IntroScreen> {
                   );
                 }
 
-                // ✅ Page with 4 images grid
+                // Page with 4 images grid
                 if (page.containsKey("quadImages")) {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 2x2 Grid
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: GridView.builder(
@@ -149,10 +153,9 @@ class _IntroScreenState extends State<IntroScreen> {
                   );
                 }
 
-                // ✅ Default design (for IntroScreen1 with pinTop)
+                // Default design (for IntroScreen1 with pinTop)
                 return Stack(
                   children: [
-                    // Background image
                     Container(
                       height: MediaQuery.of(context).size.height,
                       decoration: BoxDecoration(
@@ -166,8 +169,6 @@ class _IntroScreenState extends State<IntroScreen> {
                         ),
                       ),
                     ),
-
-                    // Description (bottom-center)
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
@@ -180,8 +181,6 @@ class _IntroScreenState extends State<IntroScreen> {
                         ),
                       ),
                     ),
-
-                    // Top pinned icon + heading
                     if (page.containsKey("pinTop") && page["pinTop"] == true)
                       Positioned(
                         top: 60,
@@ -197,6 +196,21 @@ class _IntroScreenState extends State<IntroScreen> {
                               style: headingStyle,
                               textAlign: TextAlign.center,
                             ),
+                            // Swipe hint below "Real-Time Alerts"
+                            if (_currentPage == 0) ...[
+                              SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text("Swipe to continue",
+                                      style: TextStyle(
+                                          color: Colors.white70, fontSize: 14)),
+                                  SizedBox(width: 5),
+                                  Icon(Icons.swipe,
+                                      color: Colors.white70, size: 20),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -205,59 +219,102 @@ class _IntroScreenState extends State<IntroScreen> {
               },
             ),
 
-            // ✅ Bottom nav arrows + dots
+            // Progress text (Step X of Y)
+            Positioned(
+              top: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  "Step ${_currentPage + 1} of ${_pagesData.length}",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ),
+            ),
+
+            // Bottom nav arrows + dots
             Positioned(
               bottom: 20,
               left: 0,
               right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                    onPressed: _currentPage > 0
-                        ? () => _pageController.previousPage(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    )
-                        : () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => WelcomeScreen()),
-                      );
-                    },
-                  ),
                   Row(
-                    children: List.generate(_pagesData.length, (index) {
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? Colors.tealAccent
-                              : Colors.grey,
-                          shape: BoxShape.circle,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                        onPressed: _currentPage > 0
+                            ? () => _pageController.previousPage(
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        )
+                            : () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => WelcomeScreen()),
+                          );
+                        },
+                      ),
+                      Row(
+                        children: List.generate(_pagesData.length, (index) {
+                          return Container(
+                            margin: EdgeInsets.symmetric(horizontal: 4),
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: _currentPage == index
+                                  ? Colors.tealAccent
+                                  : Colors.grey,
+                              shape: BoxShape.circle,
+                            ),
+                          );
+                        }),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
+                        onPressed: _currentPage < _pagesData.length - 1
+                            ? () => _pageController.nextPage(
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        )
+                            : () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => HomeScreen()),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                  // Show "Get Started" button on last page
+                  if (_currentPage == _pagesData.length - 1)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.tealAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                      );
-                    }),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
-                    onPressed: _currentPage < _pagesData.length - 1
-                        ? () => _pageController.nextPage(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    )
-                        : () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => HomeScreen()),
-                      );
-                    },
-                  ),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => HomeScreen()),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          child: Text("Get Started",
+                              style: TextStyle(color: Colors.black)),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
