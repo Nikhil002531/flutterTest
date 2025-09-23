@@ -46,7 +46,7 @@ class _UploadScreenState extends State<UploadScreen> {
       });
 
       try {
-        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled(); //checkPermission from user
         if (!serviceEnabled) return;
 
         LocationPermission permission = await Geolocator.checkPermission();
@@ -76,39 +76,44 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   /// Finalize & prepare JSON
-  void _finalizeReport() {
-    if (_image == null || _timestamp == null || _selectedDisaster == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("⚠️ Please fill all details before uploading")),
-      );
-      return;
-    }
-
-    final report = DisasterReport(
-      imagePath: _image!.path,
-      latitude: _position?.latitude ?? 0.0,
-      longitude: _position?.longitude ?? 0.0,
-      location: _address ?? "Unknown",
-      timestamp: _timestamp!,
-      disasterType: _selectedDisaster!,
-      description: _descController.text.trim(),
-    );
-
-    final jsonData = report.toJson();
-    print("✅ Prepared JSON: $jsonData");
-
-    setState(() {
-      _lastReport = report;
-      _image = null;
-      _selectedDisaster = null;
-      _descController.clear();
-    });
-
+void _finalizeReport() async {
+  if (_image == null || _timestamp == null || _selectedDisaster == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("🌊 Report prepared! Ready for backend.")),
+      SnackBar(content: Text("⚠️ Please fill all details before uploading")),
     );
+    return;
   }
 
+  // Step 1: Create DisasterReport object
+  final report = DisasterReport(
+    userId: "test_user_001", // can be dynamic
+    imagePath: _image!.path,
+    latitude: _position?.latitude,
+    longitude: _position?.longitude,
+    location: _address ?? "Unknown",
+    timestamp: _timestamp!,
+    disasterType: _selectedDisaster!,
+    description: _descController.text.trim(),
+  );
+
+  setState(() {
+    _lastReport = report; // store for showing preview
+    _image = null;
+    _selectedDisaster = null;
+    _descController.clear();
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text("🌊 Sending report to backend...")),
+  );
+
+  // Step 2: Send to backend
+  await report.sendToBackend();
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text("✅ Report uploaded successfully!")),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

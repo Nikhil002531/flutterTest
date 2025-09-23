@@ -1,7 +1,8 @@
-// lib/models/disaster_report.dart
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 
 class DisasterReport {
+  final String userId; // use camelCase
   final String imagePath;
   final double? latitude;
   final double? longitude;
@@ -9,9 +10,10 @@ class DisasterReport {
   final String timestamp;
   final String disasterType;
   final String description;
-  final double intensity; // heatmap weight
+  final double intensity;
 
   DisasterReport({
+    required this.userId,
     required this.imagePath,
     this.latitude,
     this.longitude,
@@ -24,6 +26,7 @@ class DisasterReport {
 
   Map<String, dynamic> toJson() {
     return {
+      "user_id": userId,
       "image_path": imagePath,
       "latitude": latitude,
       "longitude": longitude,
@@ -35,12 +38,35 @@ class DisasterReport {
     };
   }
 
-  /// Build from a scraped post (the JSON you uploaded).
+  Future<void> sendToBackend() async {
+    var uri = Uri.parse("https://three9-analysis.onrender.com/analyze-report");
+    var request = http.MultipartRequest("POST", uri);
+
+    request.fields['user_id'] = userId;
+    request.fields['disaster_type'] = disasterType;
+    request.fields['description'] = description;
+    if (latitude != null) request.fields['latitude'] = latitude.toString();
+    if (longitude != null) request.fields['longitude'] = longitude.toString();
+
+    request.files.add(await http.MultipartFile.fromPath("files", imagePath));
+
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        print("✅ Report sent successfully");
+      } else {
+        print("❌ Failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("❌ Error sending report: $e");
+    }
+  }
+
+  /// Build from scraped map
   factory DisasterReport.fromScraperMap(Map<String, dynamic> m) {
     double? lat;
     double? lon;
 
-    // 1) If post contains a location object with lat/lon
     if (m['location'] is Map) {
       final loc = m['location'] as Map;
       if (loc['latitude'] != null && loc['longitude'] != null) {
@@ -49,13 +75,11 @@ class DisasterReport {
       }
     }
 
-    // 2) If scraper stored lat/lon directly
     if (lat == null && m['latitude'] != null && m['longitude'] != null) {
       lat = (m['latitude'] as num).toDouble();
       lon = (m['longitude'] as num).toDouble();
     }
 
-    // 3) fallback: quick city keyword -> coords mapping
     if (lat == null) {
       final text = ((m['cleaned_text'] ?? m['raw_text'] ?? '') as String).toLowerCase();
       for (final e in _cityCoords.entries) {
@@ -67,15 +91,17 @@ class DisasterReport {
       }
     }
 
-    // 4) image: choose first media if any
     String image = '';
     if (m['media_urls'] is List && (m['media_urls'] as List).isNotEmpty) {
       image = (m['media_urls'] as List).first as String;
     }
 
-    final dtype = (m['ai_classification']?['category'] ?? m['metadata']?['category'] ?? m['disasterType'] ?? 'Unknown').toString();
+    final dtype = (m['ai_classification']?['category'] ??
+            m['metadata']?['category'] ??
+            m['disasterType'] ??
+            'Unknown')
+        .toString();
 
-    // 5) intensity: prefer AI urgency, else boring engagement heuristic
     double intensity = 1.0;
     if (m['ai_classification']?['urgency'] != null) {
       final urgency = m['ai_classification']['urgency'].toString().toLowerCase();
@@ -90,10 +116,14 @@ class DisasterReport {
     }
 
     return DisasterReport(
+      userId: "scraper_user", // default ID for scraped posts
       imagePath: image,
       latitude: lat,
       longitude: lon,
-      location: (m['location'] is String ? m['location'] as String : (m['location']?['name'] ?? 'Unknown')).toString(),
+      location: (m['location'] is String
+              ? m['location'] as String
+              : (m['location']?['name'] ?? 'Unknown'))
+          .toString(),
       timestamp: (m['timestamp'] ?? '').toString(),
       disasterType: dtype,
       description: (m['cleaned_text'] ?? m['raw_text'] ?? '').toString(),
