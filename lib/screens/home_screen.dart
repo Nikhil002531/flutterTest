@@ -1,152 +1,184 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+
 import '../widgets/sidebar_menu.dart';
 import '../auth/wrapper_screen.dart';
-import '../models/news.dart';
-import '../widgets/news_card.dart';
+import './report_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  final List<News> mockNews = [
-    News(title: "Cyclone Alert in Bay of Bengal", description: "IMD warns of a severe cyclone approaching the east coast."),
-    News(title: "Tsunami Drill in Chennai", description: "Coastal regions participate in a large-scale tsunami preparedness drill."),
-    News(title: "Rising Sea Levels", description: "Study shows alarming rise in global sea levels due to melting glaciers."),
-    News(title: "Oil Spill in Arabian Sea", description: "Cleanup operations begin after a tanker leak near Mumbai coast."),
-    News(title: "Flood in Kerala", description: "Heavy rainfall causes flooding in Kochi; rescue teams deployed."),
-    News(title: "Fishing Ban", description: "Seasonal fishing ban announced to conserve marine life."),
-    News(title: "Plastic Pollution", description: "Oceans threatened as plastic waste reaches record levels."),
-    News(title: "Forest Fire near Coastal Belt", description: "Wildfires reported near coastal forests of Karnataka."),
-    News(title: "Shipwreck in Andaman", description: "Cargo ship sinks; Indian Coast Guard begins rescue operation."),
-    News(title: "Coral Reefs at Risk", description: "Climate change puts coral ecosystems under extreme stress."),
-    News(title: "Drought Impact", description: "Water scarcity affects coastal villages in Tamil Nadu."),
-    News(title: "Storm Surge", description: "High tides predicted due to strong winds near Odisha coast."),
-  ];
+class HomeScreen extends StatefulWidget {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<dynamic> reports = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchReports();
+  }
+
+  Future<void> fetchReports() async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://three9-analysis.onrender.com/reports?limit=50&skip=0&collection=basic"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          reports = data["reports"];
+          loading = false;
+        });
+      } else {
+        throw Exception("Failed to load reports");
+      }
+    } catch (e) {
+      print("Error fetching reports: $e");
+      setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
+
+      // *************************************
+      //      IMPROVED APPBAR & COLORS
+      // *************************************
       appBar: AppBar(
         title: Text(
-          "🌊 Ocean Disaster News",
+          "🌊 Disaster Reports",
           style: GoogleFonts.poppins(
-            textStyle: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 1.2,
-            ),
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
+        iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        actions: [
-          if (user != null)
-            IconButton(
-              icon: Icon(Icons.logout, color: Colors.white),
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => WrapperScreen()),
-                );
-              },
-            )
-        ],
+        backgroundColor: Colors.black.withOpacity(0.2),
       ),
-      drawer: SidebarMenu(),
+
+      // *************************************
+      //         FIX DARK TEXT IN DRAWER
+      // *************************************
+      drawer: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: Color(0xFF002855), // deep sea blue background
+        ),
+        child: SidebarMenu(),
+      ),
+
+      // *************************************
+      //             BEAUTIFUL BODY
+      // *************************************
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF001B48), Color(0xFF005792), Color(0xFF00BBF9)],
+            colors: [
+              Color(0xFF001B48),
+              Color(0xFF003D73),
+              Color(0xFF0077B6),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.only(top: 90, left: 16, right: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Stay informed 🌐",
-                style: GoogleFonts.lora(
-                  textStyle: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Text(
-                "Latest disasters from oceans, seas & coasts",
-                style: GoogleFonts.roboto(
-                  textStyle: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white70,
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  physics: BouncingScrollPhysics(),
-                  itemCount: mockNews.length,
-                  itemBuilder: (context, index) {
-                    final news = mockNews[index];
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: [Colors.blue.shade800, Colors.blue.shade400],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          )
-                        ],
+          padding: const EdgeInsets.only(top: 110, left: 16, right: 16),
+          child: loading
+              ? Center(child: CircularProgressIndicator(color: Colors.white))
+              : reports.isEmpty
+                  ? Center(
+                      child: Text(
+                        "No reports found",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.all(16),
-                        title: Text(
-                          news.title,
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                    )
+                  : ListView.builder(
+                      physics: BouncingScrollPhysics(),
+                      itemCount: reports.length,
+                      itemBuilder: (context, index) {
+                        final report = reports[index];
+
+                        // SAFE LOCATION EXTRACT FIX
+                        String locationName =
+                            report["location"] is Map
+                                ? report["location"]["name"]
+                                : report["location"] ?? "Unknown";
+
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ReportDetailScreen(reportId: report["id"]),
+                              ),
+                            );
+                          },
+
+                          // *************************************
+                          //   GLASSMORPHIC, PREMIUM-LOOK CARD
+                          // *************************************
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(22),
+                              color: Colors.white.withOpacity(0.08),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.15),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.all(20),
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.white24,
+                                child:
+                                    Icon(Icons.warning, color: Colors.white),
+                              ),
+                              title: Text(
+                                report["disaster_type"] ?? "Unknown",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              subtitle: Text(
+                                "Location: $locationName",
+                                style: GoogleFonts.lato(
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
                             ),
                           ),
-                        ),
-                        subtitle: Text(
-                          news.description,
-                          style: GoogleFonts.roboto(
-                            textStyle: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.water_damage, color: Colors.white),
-                        ),
-                        trailing: Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+                        );
+                      },
+                    ),
         ),
       ),
     );
