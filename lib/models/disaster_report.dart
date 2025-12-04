@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class DisasterReport {
   final String? id;
@@ -46,12 +47,18 @@ class DisasterReport {
   }
 
   Map<String, String> toUploadJson() {
+    // Format timestamp as "yyyy-MM-dd HH:mm:ss" for backend
+    String formattedTimestamp = "";
+    if (timestamp != null) {
+      formattedTimestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp!);
+    }
+    
     return {
-      "userId": userId ?? "",
-      "lat": lat?.toString() ?? "",
-      "lng": lng?.toString() ?? "",
-      "location_name": locationName ?? "",
-      "timestamp": timestamp?.toIso8601String() ?? "",
+      "user_id": userId ?? "",
+      "latitude": lat?.toString() ?? "",
+      "longitude": lng?.toString() ?? "",
+      "location": locationName ?? "",
+      "timestamp": formattedTimestamp,
       "disaster_type": disasterType ?? "",
       "description": description ?? "",
     };
@@ -60,15 +67,24 @@ class DisasterReport {
   Future<void> sendToBackend() async {
     if (imagePath == null) throw Exception("No image provided");
 
-    final url = Uri.parse("https://three9-analysis.onrender.com/upload");
+    final url = Uri.parse("https://three9-analysis.onrender.com/analyze-report");
     var request = http.MultipartRequest("POST", url);
 
     request.fields.addAll(toUploadJson());
-    request.files.add(await http.MultipartFile.fromPath("image", imagePath!));
+    request.files.add(await http.MultipartFile.fromPath("files", imagePath!));
+
+    print("📤 Uploading to: $url");
+    print("📋 Fields: ${request.fields}");
+    print("📷 Image: $imagePath");
 
     final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    
+    print("📥 Response status: ${response.statusCode}");
+    print("📥 Response body: $responseBody");
+
     if (response.statusCode != 200) {
-      throw Exception("Upload failed: ${response.statusCode}");
+      throw Exception("Upload failed: ${response.statusCode} - $responseBody");
     }
   }
 }

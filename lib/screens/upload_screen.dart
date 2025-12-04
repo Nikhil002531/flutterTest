@@ -107,10 +107,31 @@ class _UploadScreenState extends State<UploadScreen> {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text("Uploading...")));
 
-    await report.sendToBackend();
+    try {
+      await report.sendToBackend();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("✅ Uploaded Successfully!")));
+    } catch (e) {
+      print("❌ Upload error: $e");
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Uploaded Successfully!")));
+      String errorMessage = "Upload failed";
+      if (e.toString().contains("Failed host lookup") ||
+          e.toString().contains("No address associated")) {
+        errorMessage = "❌ No internet connection or server unreachable.\nCheck your network and try again.";
+      } else if (e.toString().contains("timeout")) {
+        errorMessage = "❌ Request timed out. Server might be slow or down.";
+      } else {
+        errorMessage = "❌ Upload failed: ${e.toString()}";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 6),
+        ),
+      );
+    }
   }
 
   @override
