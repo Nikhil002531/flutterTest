@@ -43,6 +43,8 @@ class DisasterReport {
       timestamp: json["timestamp"] != null
           ? DateTime.parse(json["timestamp"])
           : null,
+      description: json["description"],
+      userId: json["user_id"],
     );
   }
 
