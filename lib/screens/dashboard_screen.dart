@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../widgets/sidebar_menu.dart';
 import 'map_screen.dart';
+import 'dashboard_report_screen.dart';
+import 'dashboard_profile_screen.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -8,7 +12,9 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Dashboard")),
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+      ),
       drawer: SidebarMenu(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -25,7 +31,9 @@ class DashboardScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MapScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const MapScreen(),
+                  ),
                 );
               },
             ),
@@ -35,8 +43,11 @@ class DashboardScreen extends StatelessWidget {
               icon: Icons.report,
               color: Colors.deepOrange,
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Reports section coming soon...")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReportsScreen(),
+                  ),
                 );
               },
             ),
@@ -46,8 +57,11 @@ class DashboardScreen extends StatelessWidget {
               icon: Icons.person,
               color: Colors.purple,
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Profile section coming soon...")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DashboardProfileScreen(),
+                  ),
                 );
               },
             ),
@@ -57,8 +71,11 @@ class DashboardScreen extends StatelessWidget {
               icon: Icons.settings,
               color: Colors.green,
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Settings section coming soon...")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SettingsScreen(),
+                  ),
                 );
               },
             ),
@@ -69,15 +86,17 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _dashboardCard(
-      BuildContext context, {
-        required String title,
-        required IconData icon,
-        required Color color,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -93,7 +112,10 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
