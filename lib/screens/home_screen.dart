@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
+import 'package:photo_view/photo_view_gallery.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/sidebar_menu.dart';
 import './report_screen.dart';
@@ -16,8 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> reports = [];
   bool loading = true;
 
+  /// local like system
   Map<String, bool> liked = {};
-  Map<String, bool> saved = {};
 
   @override
   void initState() {
@@ -36,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          reports = data["reports"];
+          reports = data["reports"] ?? [];
           loading = false;
         });
       } else {
@@ -48,63 +50,123 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void showComments(String postId) {
+  // ---------------- LIKE SYSTEM ----------------
+  bool isLiked(dynamic report) {
+    return liked[report["id"].toString()] == true;
+  }
+
+  void toggleLike(dynamic report) {
+    final id = report["id"].toString();
+    setState(() {
+      liked[id] = !(liked[id] ?? false);
+    });
+  }
+
+  // ---------------- IMAGE VIEWER ----------------
+  void openImageViewer(BuildContext context, List images, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          body: PhotoViewGallery.builder(
+            itemCount: images.length,
+            pageController: PageController(initialPage: index),
+            builder: (_, i) {
+              return PhotoViewGalleryPageOptions(
+                imageProvider: NetworkImage(images[i]),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------- MAP ----------------
+  Future<void> openLocation(double lat, double lng) async {
+    final url = Uri.parse("https://maps.google.com/?q=$lat,$lng");
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not open map")),
+      );
+    }
+  }
+
+  // ---------------- SHARE ----------------
+  void shareReport(dynamic report) {
+    final text =
+        "Disaster Report: ${report["disaster_type"] ?? ""}\n"
+        "${report["description"] ?? ""}\n"
+        "Location: ${report["location"]?["name"] ?? "Unknown"}";
+    Share.share(text);
+  }
+
+  // ---------------- INFO SHEET ----------------
+  void _showInfoSheet(BuildContext context, dynamic report) {
+    final verification = report["verification"];
+    final searchResults =
+        verification?["verification_result"]?["official_verification"]
+        ?["search_results"] ??
+            [];
+
+    final findings =
+    verification?["verification_result"]?["enhanced_analysis"]
+    ?["key_findings"];
+
     showModalBottomSheet(
-      backgroundColor: const Color(0xFF002545),
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
-        return Container(
+        return Padding(
           padding: const EdgeInsets.all(16),
-          height: 350,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: [
-              const Text(
-                "Comments",
-                style: TextStyle(fontSize: 20, color: Colors.white),
+              Text(
+                "Verified Sources",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
-              const Expanded(
-                child: ListView(
-                  children: [
-                    Text("No comments yet...", style: TextStyle(color: Colors.white70)),
-                  ],
+
+              if (searchResults.isNotEmpty)
+                ...searchResults.map<Widget>((item) {
+                  return ListTile(
+                    title: Text(item["title"] ?? ""),
+                    subtitle: Text(item["snippet"] ?? ""),
+                    trailing: const Icon(Icons.open_in_new),
+                    onTap: () async {
+                      final uri = Uri.parse(item["url"]);
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                  );
+                }),
+
+              const SizedBox(height: 20),
+              Text(
+                "AI Key Findings",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "Write a comment...",
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.white12,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 10),
+
+              if (findings != null)
+                ...findings.map<Widget>(
+                      (f) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text("• $f"),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void sharePost(String description) {
-    showModalBottomSheet(
-      backgroundColor: const Color(0xFF002545),
-      context: context,
-      builder: (_) {
-        return Container(
-          height: 180,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: const [
-              Text("Share Report", style: TextStyle(fontSize: 18, color: Colors.white)),
-              SizedBox(height: 20),
-              Text("Sharing is not implemented yet.", style: TextStyle(color: Colors.white54)),
             ],
           ),
         );
@@ -115,192 +177,167 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black),
         title: Text(
-          "🌊 Disaster Feed",
+          "Disaster Feed",
           style: GoogleFonts.poppins(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.black.withOpacity(0.2),
-        elevation: 0,
       ),
-      drawer: Theme(
-        data: Theme.of(context).copyWith(canvasColor: const Color(0xFF002855)),
-        child: SidebarMenu(),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF001B48),
-              Color(0xFF003D73),
-              Color(0xFF0077B6),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 110, left: 12, right: 12),
-          child: loading
-              ? const Center(child: CircularProgressIndicator(color: Colors.white))
-              : reports.isEmpty
-              ? const Center(
-            child: Text(
-              "No reports found",
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          )
-              : ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: reports.length,
-            itemBuilder: (context, index) {
-              final report = reports[index];
+      drawer: SidebarMenu(),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        itemCount: reports.length,
+        itemBuilder: (context, index) {
+          final report = reports[index];
+          final location = report["location"];
+          final images = report["images"];
 
-              String postId = report["id"].toString();
+          final summary =
+              report["verification"]?["verification_result"]
+              ?["enhanced_analysis"]?["key_findings"]?[0] ??
+                  report["social_analysis"]?["ai_analysis"]?["summary"] ??
+                  report["description"] ??
+                  "No description available";
 
-              String locationName = report["location"] is Map
-                  ? report["location"]["name"]
-                  : "Unknown";
-
-              // ⭐ FIX: Correct backend image field
-              String imageUrl = (report["images"] != null &&
-                  report["images"].isNotEmpty)
-                  ? report["images"][0]
-                  : "https://via.placeholder.com/600x400?text=No+Image";
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(18),
+          /// IMAGE SAFE HANDLING
+          Widget imageWidget;
+          if (images is List && images.isNotEmpty) {
+            imageWidget = GestureDetector(
+              onTap: () => openImageViewer(context, images, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  images[0],
+                  height: 260,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.white24,
-                        child: Icon(Icons.warning, color: Colors.white),
-                      ),
-                      title: Text(
-                        report["disaster_type"] ?? "Disaster Report",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      subtitle: Text(
-                        locationName,
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                      trailing:
-                      const Icon(Icons.more_vert, color: Colors.white70),
-                    ),
+              ),
+            );
+          } else {
+            imageWidget = Container(
+              height: 260,
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.image_not_supported, size: 60),
+            );
+          }
 
-                    // ⭐ FIXED IMAGE SECTION
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        imageUrl,
-                        height: 260,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 260,
-                            color: Colors.black26,
-                            child: const Center(
-                              child:
-                              Icon(Icons.broken_image, color: Colors.white),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Padding(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                liked[postId] = !(liked[postId] ?? false);
-                              });
-                            },
-                            child: Icon(
-                              liked[postId] == true
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: liked[postId] == true
-                                  ? Colors.red
-                                  : Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          GestureDetector(
-                            onTap: () => showComments(postId),
-                            child: const Icon(Icons.mode_comment_outlined,
-                                color: Colors.white, size: 28),
-                          ),
-                          const SizedBox(width: 20),
-                          GestureDetector(
-                            onTap: () => sharePost(report["description"] ?? ""),
-                            child: const Icon(Icons.send_outlined,
-                                color: Colors.white, size: 28),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                saved[postId] = !(saved[postId] ?? false);
-                              });
-                            },
-                            child: Icon(
-                              saved[postId] == true
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_border,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Padding(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        report["description"] ?? "No description available",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-                  ],
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ReportDetailScreen(reportId: report["id"]),
                 ),
               );
             },
-          ),
-        ),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue.shade100,
+                      child:
+                      const Icon(Icons.person, color: Colors.blue),
+                    ),
+                    title: Text(
+                      report["disaster_type"] ?? "Unknown",
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: location != null &&
+                        location["lat"] != null &&
+                        location["lng"] != null
+                        ? GestureDetector(
+                      onTap: () => openLocation(
+                          location["lat"], location["lng"]),
+                      child: Text(
+                        location["name"] ?? "Unknown Location",
+                        style: GoogleFonts.lato(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    )
+                        : const Text("Unknown Location"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.info_outline),
+                      onPressed: () =>
+                          _showInfoSheet(context, report),
+                    ),
+                  ),
+
+                  imageWidget,
+
+                  const SizedBox(height: 10),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => toggleLike(report),
+                          child: Icon(
+                            isLiked(report)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 30,
+                            color: isLiked(report)
+                                ? Colors.red
+                                : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        GestureDetector(
+                          onTap: () => shareReport(report),
+                          child: const Icon(Icons.send_outlined,
+                              size: 30),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      summary,
+                      style:
+                      GoogleFonts.poppins(fontSize: 14),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
